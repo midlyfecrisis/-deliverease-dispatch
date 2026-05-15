@@ -400,6 +400,7 @@ function showTab(t) {
     document.getElementById('tab-' + (x==='orders'?'orders':x==='fin'?'fin':'sig')).classList.toggle('active', x===t);
     document.getElementById(x + 'Tab').style.display = x===t ? 'block' : 'none';
   });
+  if (t==='sig') setTimeout(initSigs, 100);
 }
 
 function fmt(n) { return '$'+(parseFloat(n)||0).toFixed(2); }
@@ -472,37 +473,68 @@ function renderOrders() {
 function card(o) {
   const z=zone(o.delivery_fee), dp=DR[z]||6, s=o.order_status||'pending';
   const d=cd[o.id]||{};
+
+  // Parse special instructions cleanly
+  const si = o.special_instructions||'';
+  const emailMatch = si.match(/Email:\s*([^\|]+)/i);
+  const email = emailMatch ? emailMatch[1].trim() : '';
+  const siClean = si.replace(/Email:[^\|]+\|?/i,'').replace(/Vendor Address:[^\|]+\|?/i,'').replace(/Service:[^\|]+\|?/i,'').replace(/Payment:[^\|]+\|?/i,'').trim().replace(/^\|/,'').trim();
+
   let actions='';
   if (cu.role==='dispatcher') {
-    if (s==='pending') actions+=`<select class="driver-assign-sel" onchange="assignDriver('${o.id}',this.value)"><option value="">Assign driver...</option><option value="Michael Hiratani"${o.driver_assigned==='Michael Hiratani'?' selected':''}>Michael Hiratani</option><option value="Adam Mercer"${o.driver_assigned==='Adam Mercer'?' selected':''}>Adam Mercer</option></select><button class="action-btn btn-accept" onclick="activate('${o.id}')">▶ Activate</button>`;
-    if (s==='active') actions+=`<button class="action-btn btn-complete" onclick="complete('${o.id}')">✓ Done</button>`;
+    // Show assign dropdown for both pending and active
+    const driverSel = `<select class="driver-assign-sel" onchange="assignDriver('${o.id}',this.value)">
+      <option value="">${o.driver_assigned||'Assign driver...'}</option>
+      <option value="Michael Hiratani">Michael Hiratani</option>
+      <option value="Adam Mercer">Adam Mercer</option>
+    </select>`;
+    if (s==='pending') actions+=`${driverSel}<button class="action-btn btn-accept" onclick="activate('${o.id}')">▶ Activate</button>`;
+    if (s==='active') actions+=`${driverSel}<button class="action-btn btn-complete" onclick="complete('${o.id}')">✓ Done</button>`;
+    if (s==='completed') actions+=`<div style="font-size:11px;color:#888;">✅ Completed</div>`;
   }
   if (cu.role==='driver') {
     if (s==='pending') actions+=`<button class="action-btn btn-accept" onclick="driverAccept('${o.id}','${(o.customer_phone||'').replace(/'/g,"\\'")}','${(o.customer_name||'').replace(/'/g,"\\'")}')">✅ Accept & Text Customer</button>`;
     if (s==='active') actions+=`<button class="action-btn btn-complete" onclick="complete('${o.id}')">✓ Delivery Complete</button>`;
   }
-  const compBox = (s==='active'||s==='completed') ? `<div class="comp-box"><div class="comp-grid"><div><div class="comp-label">Food Cost</div><input class="comp-input" type="number" placeholder="0.00" value="${d.food||''}" oninput="sc('${o.id}','food',this.value)"></div><div><div class="comp-label">Tip</div><input class="comp-input" type="number" placeholder="0.00" value="${d.tip||''}" oninput="sc('${o.id}','tip',this.value)"></div><div><div class="comp-label">Total Collected</div><input class="comp-input" type="number" placeholder="0.00" value="${d.total||''}" oninput="sc('${o.id}','total',this.value)"></div></div><select class="pay-sel"><option>Cash</option><option>Zelle</option><option>Card</option></select>${cu.role==='dispatcher'?`<div class="driver-pay-info">Driver pay: <strong style="color:#e8197d;">${fmt(dp)}</strong></div>`:''}</div>` : '';
+
+  const compBox = (s==='active'||s==='completed') ? `
+    <div class="comp-box">
+      <div class="comp-grid">
+        <div><div class="comp-label">Food Cost $</div><input class="comp-input" type="number" placeholder="0.00" value="${d.food||''}" oninput="sc('${o.id}','food',this.value)"></div>
+        <div><div class="comp-label">Tip $</div><input class="comp-input" type="number" placeholder="0.00" value="${d.tip||''}" oninput="sc('${o.id}','tip',this.value)"></div>
+        <div><div class="comp-label">Total Collected $</div><input class="comp-input" type="number" placeholder="0.00" value="${d.total||''}" oninput="sc('${o.id}','total',this.value)"></div>
+      </div>
+      <select class="pay-sel"><option>Cash</option><option>Zelle</option><option>Card — Square</option></select>
+      ${cu.role==='dispatcher'?`<div class="driver-pay-info">Driver pay owed: <strong style="color:#e8197d;">${fmt(dp)}</strong></div>`:''}
+    </div>` : '';
+
   const smsBadge = d.sms ? '<div class="sms-badge">📱 Customer notified via text</div>' : '';
   const phone = o.customer_phone||'—';
   const delivAddr = o.delivery_address||'—';
   const pickupAddr = o.store_name ? `${o.store_name}, Pahrump NV` : 'Pahrump NV';
   const phoneClick = `onclick="showPhoneModal('${phone.replace(/'/g,"\\'")}')"`; 
-  const delivAddrClick = `onclick="showMapModal('${delivAddr.replace(/'/g,"\\'")}','Delivery: ${delivAddr.replace(/'/g,"\\'")}')"`;
-  const pickupAddrClick = `onclick="showMapModal('${pickupAddr.replace(/'/g,"\\'")}','Pickup: ${pickupAddr.replace(/'/g,"\\'")}')"`;
+  const delivAddrClick = `onclick="showMapModal('${delivAddr.replace(/'/g,"\\'")}','Deliver to: ${delivAddr.replace(/'/g,"\\'")}')"`;
+  const pickupAddrClick = `onclick="showMapModal('${pickupAddr.replace(/'/g,"\\'")}','Pickup from: ${pickupAddr.replace(/'/g,"\\'")}')"`;
+
   return `<div class="order-card ${s}" id="oc-${o.id}">
-    <div class="order-header"><div class="order-name">${o.customer_name||'—'}</div><div class="order-time">${timeStr(o.created_at)}</div></div>
+    <div class="order-header">
+      <div class="order-name">${o.customer_name||'—'}</div>
+      <div class="order-time">${timeStr(o.created_at)}</div>
+    </div>
     <div class="order-detail"><span>📞</span><span class="clickable-phone" ${phoneClick}>${phone} — tap to call/text</span></div>
-    <div class="pickup-section"><div class="pickup-label">🛒 PICKUP FROM</div><span class="clickable-addr" ${pickupAddrClick}>${o.store_name||'—'} — tap for directions</span></div>
-    <div class="delivery-section"><div class="delivery-label">📦 DELIVER TO</div><span class="clickable-addr" ${delivAddrClick}>${delivAddr} — tap for directions</span></div>
-    <div class="order-detail"><span>📝</span>${o.items_ordered||'—'}</div>
-    ${o.special_instructions?`<div class="order-detail"><span>⚠️</span>${o.special_instructions}</div>`:''}
+    ${email?`<div class="order-detail"><span>✉️</span>${email}</div>`:''}
+    <div class="pickup-section"><div class="pickup-label">🛒 STEP 1 — PICKUP FROM</div><span class="clickable-addr" ${pickupAddrClick}>${o.store_name||'—'} — tap for directions</span></div>
+    <div class="delivery-section"><div class="delivery-label">📦 STEP 2 — DELIVER TO</div><span class="clickable-addr" ${delivAddrClick}>${delivAddr} — tap for directions</span></div>
+    <div class="order-detail"><span>📝</span><strong>Order:</strong> ${o.items_ordered||'—'}</div>
+    ${siClean?`<div class="order-detail"><span>⚠️</span>${siClean}</div>`:''}
     ${o.is_age_restricted?'<div class="age-warning">🔞 21+ ID REQUIRED AT DELIVERY</div>':''}
-    ${o.driver_assigned?`<div class="order-detail"><span>🚗</span>${o.driver_assigned}</div>`:''}
+    ${o.driver_assigned?`<div class="order-detail"><span>🚗</span>Assigned to: <strong>${o.driver_assigned}</strong></div>`:''}
     <div class="order-fee">${fmt(o.delivery_fee)} — ${z}</div>
     ${smsBadge}
     <div class="order-actions">${actions}</div>
     ${compBox}
   </div>`;
+}
 }
 
 function sc(id,f,v) { if(!cd[id]) cd[id]={}; cd[id][f]=v; updateFin&&cu.role==='dispatcher'&&updateFin(); }
@@ -591,16 +623,25 @@ function initSigs() {
     const cv=document.getElementById(id);
     if(!cv) return;
     const ctx=cv.getContext('2d');
-    cv.width=cv.offsetWidth; cv.height=cv.offsetHeight;
-    ctx.strokeStyle='#1a1a1a'; ctx.lineWidth=2; ctx.lineCap='round';
+    const dpr = window.devicePixelRatio||1;
+    const rect = cv.getBoundingClientRect();
+    cv.width = rect.width * dpr;
+    cv.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    ctx.strokeStyle='#1a1a1a'; ctx.lineWidth=2.5; ctx.lineCap='round'; ctx.lineJoin='round';
     let draw=false;
-    function pos(e){const r=cv.getBoundingClientRect(),s=e.touches?e.touches[0]:e;return{x:s.clientX-r.left,y:s.clientY-r.top};}
-    cv.addEventListener('mousedown',e=>{draw=true;ctx.beginPath();const p=pos(e);ctx.moveTo(p.x,p.y);});
+    function pos(e){
+      const r=cv.getBoundingClientRect();
+      const src=e.touches?e.touches[0]:e;
+      return{x:src.clientX-r.left, y:src.clientY-r.top};
+    }
+    cv.addEventListener('mousedown',e=>{e.preventDefault();draw=true;ctx.beginPath();const p=pos(e);ctx.moveTo(p.x,p.y);});
     cv.addEventListener('mousemove',e=>{if(!draw)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();});
     cv.addEventListener('mouseup',()=>draw=false);
+    cv.addEventListener('mouseleave',()=>draw=false);
     cv.addEventListener('touchstart',e=>{e.preventDefault();draw=true;ctx.beginPath();const p=pos(e);ctx.moveTo(p.x,p.y);},{passive:false});
     cv.addEventListener('touchmove',e=>{e.preventDefault();if(!draw)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();},{passive:false});
-    cv.addEventListener('touchend',()=>draw=false);
+    cv.addEventListener('touchend',e=>{e.preventDefault();draw=false;},{passive:false});
   });
 }
 
