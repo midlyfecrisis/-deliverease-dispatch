@@ -107,7 +107,27 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .submit-btn { background: #e8197d; color: white; border: none; border-radius: 10px; padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 8px; }
 .empty-state { text-align: center; padding: 40px 20px; color: #aaa; font-size: 14px; line-height: 1.8; }
-@media print { .topbar,.stats-bar,.pricing-bar,.tab-bar,.add-order-bar,.action-btn,.driver-assign-sel,.tb-btn,.modal-overlay { display: none !important; } }
+.clickable-phone { color: #e8197d; text-decoration: none; font-weight: 600; }
+.clickable-addr { color: #3b82f6; text-decoration: underline; font-weight: 600; cursor: pointer; }
+.map-modal,.phone-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 300; align-items: flex-end; justify-content: center; }
+.map-modal.open,.phone-modal.open { display: flex; }
+.map-sheet,.phone-sheet { background: white; border-radius: 16px 16px 0 0; padding: 20px 16px 40px; width: 100%; }
+.map-title,.phone-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.map-addr-text,.phone-num-text { font-size: 13px; color: #666; margin-bottom: 16px; }
+.map-options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.map-btn { border: none; border-radius: 12px; padding: 16px 8px; font-size: 13px; font-weight: 700; cursor: pointer; }
+.map-btn-google { background: #4285f4; color: white; }
+.map-btn-apple { background: #1a1a1a; color: white; }
+.map-btn-waze { background: #33ccff; color: #1a1a1a; }
+.phone-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.phone-btn-call { background: #1D9E75; color: white; border: none; border-radius: 12px; padding: 16px; font-size: 14px; font-weight: 700; cursor: pointer; }
+.phone-btn-sms { background: #3b82f6; color: white; border: none; border-radius: 12px; padding: 16px; font-size: 14px; font-weight: 700; cursor: pointer; }
+.map-cancel,.phone-cancel { width: 100%; background: #f0f0f0; border: none; border-radius: 10px; padding: 12px; font-size: 14px; cursor: pointer; font-weight: 600; }
+.pickup-section { background: #fff3cd; border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; border-left: 3px solid #f59e0b; }
+.pickup-label { font-size: 10px; font-weight: 700; color: #854d0e; margin-bottom: 2px; }
+.delivery-section { background: #dbeafe; border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; border-left: 3px solid #3b82f6; }
+.delivery-label { font-size: 10px; font-weight: 700; color: #1e3a8a; margin-bottom: 2px; }
+@media print { .topbar,.stats-bar,.pricing-bar,.tab-bar,.add-order-bar,.action-btn,.driver-assign-sel,.tb-btn,.modal-overlay,.map-modal,.phone-modal { display: none !important; } }
 </style>
 </head>
 <body>
@@ -273,7 +293,32 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   </div>
 </div>
 
-<script>
+<!-- MAP PICKER MODAL -->
+<div class="map-modal" id="mapModal">
+  <div class="map-sheet">
+    <div class="map-title" id="mapModalTitle">Get Directions</div>
+    <div class="map-addr-text" id="mapModalAddr">—</div>
+    <div class="map-options">
+      <button class="map-btn map-btn-google" onclick="openMap('google')">🗺️ Google Maps</button>
+      <button class="map-btn map-btn-apple" onclick="openMap('apple')">🍎 Apple Maps</button>
+      <button class="map-btn map-btn-waze" onclick="openMap('waze')">🔵 Waze</button>
+    </div>
+    <button class="map-cancel" onclick="closeMapModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- PHONE MODAL -->
+<div class="phone-modal" id="phoneModal">
+  <div class="phone-sheet">
+    <div class="phone-title">Contact Customer</div>
+    <div class="phone-num-text" id="phoneModalNum">—</div>
+    <div class="phone-options">
+      <button class="phone-btn-call" onclick="doCall()">📞 Call</button>
+      <button class="phone-btn-sms" onclick="doSMS()">💬 Text</button>
+    </div>
+    <button class="phone-cancel" onclick="closePhoneModal()">Cancel</button>
+  </div>
+</div>
 const SB = 'https://mrhvgffvpmakfyccnsxh.supabase.co';
 const SK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yaHZnZmZ2cG1ha2Z5Y2Nuc3hoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTk1MjUsImV4cCI6MjA5MDA3NTUyNX0.mXkRuUf1CR1vTbbBThU2dBGZqY5kfBl-aVpksMxzZak';
 const TSID = 'AC86cab3cf3fffcc9c109048edccf90332';
@@ -438,10 +483,61 @@ function card(o) {
   }
   const compBox = (s==='active'||s==='completed') ? `<div class="comp-box"><div class="comp-grid"><div><div class="comp-label">Food Cost</div><input class="comp-input" type="number" placeholder="0.00" value="${d.food||''}" oninput="sc('${o.id}','food',this.value)"></div><div><div class="comp-label">Tip</div><input class="comp-input" type="number" placeholder="0.00" value="${d.tip||''}" oninput="sc('${o.id}','tip',this.value)"></div><div><div class="comp-label">Total Collected</div><input class="comp-input" type="number" placeholder="0.00" value="${d.total||''}" oninput="sc('${o.id}','total',this.value)"></div></div><select class="pay-sel"><option>Cash</option><option>Zelle</option><option>Card</option></select>${cu.role==='dispatcher'?`<div class="driver-pay-info">Driver pay: <strong style="color:#e8197d;">${fmt(dp)}</strong></div>`:''}</div>` : '';
   const smsBadge = d.sms ? '<div class="sms-badge">📱 Customer notified via text</div>' : '';
-  return `<div class="order-card ${s}" id="oc-${o.id}"><div class="order-header"><div class="order-name">${o.customer_name||'—'}</div><div class="order-time">${timeStr(o.created_at)}</div></div><div class="order-detail"><span>📞</span>${o.customer_phone||'—'}</div><div class="order-detail"><span>📍</span>${o.delivery_address||'—'}</div><div class="order-detail"><span>🍔</span>${o.store_name||'—'}</div><div class="order-detail"><span>📝</span>${o.items_ordered||'—'}</div>${o.special_instructions?`<div class="order-detail"><span>⚠️</span>${o.special_instructions}</div>`:''} ${o.is_age_restricted?'<div class="age-warning">🔞 21+ ID REQUIRED AT DELIVERY</div>':''} ${o.driver_assigned?`<div class="order-detail"><span>🚗</span>${o.driver_assigned}</div>`:''}<div class="order-fee">${fmt(o.delivery_fee)} — ${z}</div>${smsBadge}<div class="order-actions">${actions}</div>${compBox}</div>`;
+  const phone = o.customer_phone||'—';
+  const delivAddr = o.delivery_address||'—';
+  const pickupAddr = o.store_name ? `${o.store_name}, Pahrump NV` : 'Pahrump NV';
+  const phoneClick = `onclick="showPhoneModal('${phone.replace(/'/g,"\\'")}')"`; 
+  const delivAddrClick = `onclick="showMapModal('${delivAddr.replace(/'/g,"\\'")}','Delivery: ${delivAddr.replace(/'/g,"\\'")}')"`;
+  const pickupAddrClick = `onclick="showMapModal('${pickupAddr.replace(/'/g,"\\'")}','Pickup: ${pickupAddr.replace(/'/g,"\\'")}')"`;
+  return `<div class="order-card ${s}" id="oc-${o.id}">
+    <div class="order-header"><div class="order-name">${o.customer_name||'—'}</div><div class="order-time">${timeStr(o.created_at)}</div></div>
+    <div class="order-detail"><span>📞</span><span class="clickable-phone" ${phoneClick}>${phone} — tap to call/text</span></div>
+    <div class="pickup-section"><div class="pickup-label">🛒 PICKUP FROM</div><span class="clickable-addr" ${pickupAddrClick}>${o.store_name||'—'} — tap for directions</span></div>
+    <div class="delivery-section"><div class="delivery-label">📦 DELIVER TO</div><span class="clickable-addr" ${delivAddrClick}>${delivAddr} — tap for directions</span></div>
+    <div class="order-detail"><span>📝</span>${o.items_ordered||'—'}</div>
+    ${o.special_instructions?`<div class="order-detail"><span>⚠️</span>${o.special_instructions}</div>`:''}
+    ${o.is_age_restricted?'<div class="age-warning">🔞 21+ ID REQUIRED AT DELIVERY</div>':''}
+    ${o.driver_assigned?`<div class="order-detail"><span>🚗</span>${o.driver_assigned}</div>`:''}
+    <div class="order-fee">${fmt(o.delivery_fee)} — ${z}</div>
+    ${smsBadge}
+    <div class="order-actions">${actions}</div>
+    ${compBox}
+  </div>`;
 }
 
 function sc(id,f,v) { if(!cd[id]) cd[id]={}; cd[id][f]=v; updateFin&&cu.role==='dispatcher'&&updateFin(); }
+
+let currentMapAddr = '';
+let currentPhone = '';
+
+function showMapModal(addr, title) {
+  currentMapAddr = addr;
+  document.getElementById('mapModalTitle').textContent = title || 'Get Directions';
+  document.getElementById('mapModalAddr').textContent = addr;
+  document.getElementById('mapModal').classList.add('open');
+}
+
+function closeMapModal() { document.getElementById('mapModal').classList.remove('open'); }
+
+function openMap(type) {
+  const encoded = encodeURIComponent(currentMapAddr);
+  let url = '';
+  if (type === 'google') url = `https://www.google.com/maps/dir/?api=1&destination=${encoded}`;
+  if (type === 'apple') url = `http://maps.apple.com/?daddr=${encoded}`;
+  if (type === 'waze') url = `https://waze.com/ul?q=${encoded}&navigate=yes`;
+  window.open(url, '_blank');
+  closeMapModal();
+}
+
+function showPhoneModal(phone) {
+  currentPhone = phone;
+  document.getElementById('phoneModalNum').textContent = phone;
+  document.getElementById('phoneModal').classList.add('open');
+}
+
+function closePhoneModal() { document.getElementById('phoneModal').classList.remove('open'); }
+function doCall() { window.location.href = `tel:${currentPhone.replace(/\D/g,'')}` ; closePhoneModal(); }
+function doSMS() { window.location.href = `sms:${currentPhone.replace(/\D/g,'')}`; closePhoneModal(); }
 
 async function assignDriver(id,name) { await patch(id,{driver_assigned:name}); loadOrders(); }
 async function activate(id) { await patch(id,{order_status:'active'}); loadOrders(); }
