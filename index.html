@@ -118,8 +118,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div class="login-title">DeliverEase4U</div>
     <div class="login-sub">Select your name and enter your PIN</div>
     <div class="pin-user-select">
-      <button class="user-btn active" onclick="selectUser('michael')" id="btn-michael">Michael</button>
-      <button class="user-btn" onclick="selectUser('adam')" id="btn-adam">Adam</button>
+      <button class="user-btn active" onclick="selectUser('michael')" id="btn-michael">Michael 📋</button>
+      <button class="user-btn" onclick="selectUser('michaeldriver')" id="btn-michaeldriver">Michael 🚗</button>
+      <button class="user-btn" onclick="selectUser('adam')" id="btn-adam">Adam 🚗</button>
     </div>
     <div class="pin-display">
       <div class="pin-dot" id="d0"></div>
@@ -263,7 +264,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         <select class="form-select" id="mPay"><option>Cash</option><option>Zelle</option><option>Card</option></select>
       </div>
       <div class="form-group"><label class="form-label">Assign Driver</label>
-        <select class="form-select" id="mDriver"><option value="">Unassigned</option><option value="Adam Mercer">Adam Mercer</option></select>
+        <select class="form-select" id="mDriver"><option value="">Unassigned</option><option value="Michael Hiratani">Michael Hiratani</option><option value="Adam Mercer">Adam Mercer</option></select>
       </div>
     </div>
     <div class="form-group"><label class="form-label">Notes / Special Instructions</label><input class="form-input" id="mNotes" placeholder="Gate code, no pickles..."></div>
@@ -280,8 +281,9 @@ const TTOK = '3a5b564e23755efa0800c0a445bcb3c2';
 const TNUM = '+18665456498';
 
 const USERS = {
-  michael: { pin:'7291', role:'dispatcher', display:'Michael Hiratani' },
-  adam:    { pin:'4863', role:'driver',     display:'Adam Mercer', driverName:'Adam Mercer' }
+  michael:       { pin:'7291', role:'dispatcher', display:'Michael Hiratani' },
+  michaeldriver: { pin:'4498', role:'driver',     display:'Michael Hiratani', driverName:'Michael Hiratani' },
+  adam:          { pin:'4863', role:'driver',     display:'Adam Mercer',      driverName:'Adam Mercer' }
 };
 
 const DR = { 'Zone 1':6, 'Zone 2':8, 'Zone 3':10, 'Dispensary':9 };
@@ -293,6 +295,15 @@ function selectUser(u) {
   document.getElementById('pinError').textContent = '';
   document.querySelectorAll('.user-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('btn-' + u).classList.add('active');
+}
+
+function logout() {
+  cu = null; pin = ''; su = 'michael';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('mainApp').classList.remove('visible');
+  document.querySelectorAll('.user-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-michael').classList.add('active');
+  updateDots();
 }
 
 function pp(d) {
@@ -318,13 +329,6 @@ function checkPin() {
     document.getElementById('pinError').textContent = 'Incorrect PIN. Try again.';
     pin = ''; updateDots();
   }
-}
-
-function logout() {
-  cu = null; pin = ''; su = 'michael';
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('mainApp').classList.remove('visible');
-  selectUser('michael'); updateDots();
 }
 
 function initApp() {
@@ -425,7 +429,7 @@ function card(o) {
   const d=cd[o.id]||{};
   let actions='';
   if (cu.role==='dispatcher') {
-    if (s==='pending') actions+=`<select class="driver-assign-sel" onchange="assignDriver('${o.id}',this.value)"><option value="">Assign driver...</option><option value="Adam Mercer"${o.driver_assigned==='Adam Mercer'?' selected':''}>Adam Mercer</option></select><button class="action-btn btn-accept" onclick="activate('${o.id}')">▶ Activate</button>`;
+    if (s==='pending') actions+=`<select class="driver-assign-sel" onchange="assignDriver('${o.id}',this.value)"><option value="">Assign driver...</option><option value="Michael Hiratani"${o.driver_assigned==='Michael Hiratani'?' selected':''}>Michael Hiratani</option><option value="Adam Mercer"${o.driver_assigned==='Adam Mercer'?' selected':''}>Adam Mercer</option></select><button class="action-btn btn-accept" onclick="activate('${o.id}')">▶ Activate</button>`;
     if (s==='active') actions+=`<button class="action-btn btn-complete" onclick="complete('${o.id}')">✓ Done</button>`;
   }
   if (cu.role==='driver') {
