@@ -138,9 +138,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div class="login-title">DeliverEase4U</div>
     <div class="login-sub">Select your name and enter your PIN</div>
     <div class="pin-user-select">
-      <button class="user-btn active" onclick="selectUser('michael')" id="btn-michael">Michael 📋</button>
-      <button class="user-btn" onclick="selectUser('michaeldriver')" id="btn-michaeldriver">Michael 🚗</button>
-      <button class="user-btn" onclick="selectUser('adam')" id="btn-adam">Adam 🚗</button>
+      <button class="user-btn active" ontouchstart="selectUser('michael')" onclick="selectUser('michael')" id="btn-michael">Michael 📋</button>
+      <button class="user-btn" ontouchstart="selectUser('michaeldriver')" onclick="selectUser('michaeldriver')" id="btn-michaeldriver">Michael 🚗</button>
+      <button class="user-btn" ontouchstart="selectUser('adam')" onclick="selectUser('adam')" id="btn-adam">Adam 🚗</button>
     </div>
     <div class="pin-display">
       <div class="pin-dot" id="d0"></div>
@@ -150,18 +150,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     </div>
     <div class="pin-error" id="pinError"></div>
     <div class="pin-pad">
-      <button class="pin-btn" onclick="pp('1')">1</button>
-      <button class="pin-btn" onclick="pp('2')">2</button>
-      <button class="pin-btn" onclick="pp('3')">3</button>
-      <button class="pin-btn" onclick="pp('4')">4</button>
-      <button class="pin-btn" onclick="pp('5')">5</button>
-      <button class="pin-btn" onclick="pp('6')">6</button>
-      <button class="pin-btn" onclick="pp('7')">7</button>
-      <button class="pin-btn" onclick="pp('8')">8</button>
-      <button class="pin-btn" onclick="pp('9')">9</button>
+      <button class="pin-btn" ontouchstart="pp('1')" onclick="pp('1')">1</button>
+      <button class="pin-btn" ontouchstart="pp('2')" onclick="pp('2')">2</button>
+      <button class="pin-btn" ontouchstart="pp('3')" onclick="pp('3')">3</button>
+      <button class="pin-btn" ontouchstart="pp('4')" onclick="pp('4')">4</button>
+      <button class="pin-btn" ontouchstart="pp('5')" onclick="pp('5')">5</button>
+      <button class="pin-btn" ontouchstart="pp('6')" onclick="pp('6')">6</button>
+      <button class="pin-btn" ontouchstart="pp('7')" onclick="pp('7')">7</button>
+      <button class="pin-btn" ontouchstart="pp('8')" onclick="pp('8')">8</button>
+      <button class="pin-btn" ontouchstart="pp('9')" onclick="pp('9')">9</button>
       <button class="pin-btn" style="visibility:hidden;"></button>
-      <button class="pin-btn" onclick="pp('0')">0</button>
-      <button class="pin-btn del" onclick="pd()">⌫</button>
+      <button class="pin-btn" ontouchstart="pp('0')" onclick="pp('0')">0</button>
+      <button class="pin-btn del" ontouchstart="pd()" onclick="pd()">⌫</button>
     </div>
   </div>
 </div>
@@ -325,6 +325,30 @@ const TSID = 'AC86cab3cf3fffcc9c109048edccf90332';
 const TTOK = '3a5b564e23755efa0800c0a445bcb3c2';
 const TNUM = '+18665456498';
 
+// Prevent double-fire on iOS (touchstart + click both fire)
+let lastTouch = 0;
+function touchGuard() {
+  const now = Date.now();
+  if (now - lastTouch < 300) return true;
+  lastTouch = now;
+  return false;
+}
+
+const origPp = function(d) {
+  if (touchGuard()) return;
+  if (pin.length >= 4) return;
+  pin += d; updateDots();
+  if (pin.length === 4) setTimeout(checkPin, 200);
+};
+const origPd = function() { if (touchGuard()) return; pin = pin.slice(0,-1); updateDots(); };
+const origSU = function(u) {
+  if (touchGuard()) return;
+  su = u; pin = ''; updateDots();
+  document.getElementById('pinError').textContent = '';
+  document.querySelectorAll('.user-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + u).classList.add('active');
+};
+
 const USERS = {
   michael:       { pin:'7291', role:'dispatcher', display:'Michael Hiratani' },
   michaeldriver: { pin:'4498', role:'driver',     display:'Michael Hiratani', driverName:'Michael Hiratani' },
@@ -335,12 +359,9 @@ const DR = { 'Zone 1':6, 'Zone 2':8, 'Zone 3':10, 'Dispensary':9 };
 
 let cu = null, pin = '', su = 'michael', orders = [], cd = {};
 
-function selectUser(u) {
-  su = u; pin = ''; updateDots();
-  document.getElementById('pinError').textContent = '';
-  document.querySelectorAll('.user-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('btn-' + u).classList.add('active');
-}
+function pp(d) { origPp(d); }
+function pd() { origPd(); }
+function selectUser(u) { origSU(u); }
 
 function logout() {
   cu = null; pin = ''; su = 'michael';
@@ -350,14 +371,6 @@ function logout() {
   document.getElementById('btn-michael').classList.add('active');
   updateDots();
 }
-
-function pp(d) {
-  if (pin.length >= 4) return;
-  pin += d; updateDots();
-  if (pin.length === 4) setTimeout(checkPin, 200);
-}
-
-function pd() { pin = pin.slice(0,-1); updateDots(); }
 
 function updateDots() {
   for (let i=0;i<4;i++) document.getElementById('d'+i).classList.toggle('filled', i < pin.length);
