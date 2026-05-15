@@ -2,404 +2,515 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>DeliverEase4U — Live Dispatch</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DeliverEase4U — Dispatch</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #1a1a1a; font-size: 12px; }
-.sheet { padding: 12px 16px; max-width: 100%; }
-.header { display: flex; align-items: center; justify-content: space-between; background: #e8197d; border-radius: 8px; padding: 10px 16px; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
-.brand { display: flex; align-items: center; gap: 10px; }
-.brand-icon { font-size: 28px; }
-.brand-text h1 { color: white; font-size: 17px; font-weight: 600; }
-.brand-text p { color: rgba(255,255,255,0.8); font-size: 11px; }
-.header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.meta-input { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); border-radius: 6px; color: white; font-size: 12px; padding: 5px 8px; }
-.meta-input::placeholder { color: rgba(255,255,255,0.5); }
-.driver-sel { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); border-radius: 6px; color: white; font-size: 12px; padding: 5px 8px; }
-.driver-sel option { color: #333; background: white; }
-.btn { border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; cursor: pointer; font-weight: 500; }
-.btn-white { background: white; color: #e8197d; }
-.btn-dark { background: #1a1a1a; color: white; }
-.status-bar { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
-.stat-pill { background: white; border: 1px solid #e0e0e0; border-radius: 20px; padding: 4px 14px; font-size: 12px; color: #666; display: flex; align-items: center; gap: 6px; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f0f0; color: #1a1a1a; font-size: 13px; }
+.login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #e8197d 0%, #a0105a 100%); }
+.login-card { background: white; border-radius: 16px; padding: 40px 32px; width: 340px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+.login-logo { font-size: 48px; margin-bottom: 8px; }
+.login-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.login-sub { font-size: 13px; color: #888; margin-bottom: 24px; }
+.pin-user-select { display: flex; gap: 8px; margin-bottom: 20px; }
+.user-btn { flex: 1; padding: 10px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; font-size: 13px; cursor: pointer; font-weight: 600; color: #666; }
+.user-btn.active { border-color: #e8197d; color: #e8197d; background: #fff0f6; }
+.pin-display { display: flex; justify-content: center; gap: 12px; margin-bottom: 16px; }
+.pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #e8197d; background: white; transition: background 0.2s; }
+.pin-dot.filled { background: #e8197d; }
+.pin-error { color: #e8197d; font-size: 12px; min-height: 18px; margin-bottom: 8px; }
+.pin-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.pin-btn { background: #f5f5f5; border: none; border-radius: 12px; padding: 18px; font-size: 22px; font-weight: 600; cursor: pointer; color: #1a1a1a; }
+.pin-btn:active { background: #e8197d; color: white; }
+.pin-btn.del { font-size: 16px; background: #fff0f6; color: #e8197d; }
+.app { display: none; min-height: 100vh; }
+.app.visible { display: block; }
+.topbar { background: #e8197d; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; gap: 6px; }
+.topbar-title { color: white; font-size: 15px; font-weight: 700; }
+.topbar-sub { color: rgba(255,255,255,0.85); font-size: 11px; }
+.topbar-right { display: flex; align-items: center; gap: 6px; }
+.tb-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: white; padding: 6px 10px; font-size: 12px; cursor: pointer; font-weight: 600; }
+.stats-bar { display: flex; gap: 8px; padding: 10px 16px; overflow-x: auto; background: white; border-bottom: 1px solid #e0e0e0; }
+.stat-pill { background: #f5f5f5; border-radius: 20px; padding: 5px 12px; font-size: 11px; color: #666; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
 .stat-pill strong { color: #1a1a1a; }
-.stat-pill.live { border-color: #1D9E75; }
+.stat-pill.live { background: #d1f5e0; }
 .dot { width: 7px; height: 7px; border-radius: 50%; background: #1D9E75; animation: pulse 1.5s infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-.pricing-bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 10px; }
-.price-card { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 6px 10px; text-align: center; }
-.price-card.disp { border-color: #e8197d; }
-.price-zone { font-size: 10px; color: #888; margin-bottom: 2px; }
-.price-amount { font-size: 15px; font-weight: 600; color: #e8197d; }
-.price-range { font-size: 10px; color: #aaa; }
-.table-wrap { border: 1px solid #e0e0e0; border-radius: 8px; overflow: auto; margin-bottom: 10px; background: white; }
-table { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 900px; }
-thead { background: #1a1a1a; }
-thead th { color: white; font-size: 10px; font-weight: 500; padding: 7px 6px; text-align: left; border-right: 1px solid rgba(255,255,255,0.1); white-space: nowrap; }
-thead th:last-child { border-right: none; }
-tbody tr { border-bottom: 1px solid #f0f0f0; }
-tbody tr:last-child { border-bottom: none; }
-tbody tr:nth-child(even) { background: #fafafa; }
-@keyframes flashNew { 0%{background:#d4f5e9} 100%{background:transparent} }
-td { padding: 0; border-right: 1px solid #f0f0f0; vertical-align: middle; }
-td:last-child { border-right: none; }
-.td-text { font-size: 11px; color: #1a1a1a; padding: 5px 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.td-muted { font-size: 10px; color: #888; padding: 5px 6px; }
-.cell-input { width: 100%; border: none; background: transparent; font-size: 11px; color: #1a1a1a; padding: 5px 6px; font-family: inherit; }
-.cell-input:focus { outline: none; background: #e8f4fd; }
-.cell-sel { width: 100%; border: none; background: transparent; font-size: 11px; color: #1a1a1a; padding: 5px 4px; font-family: inherit; }
-.cell-sel:focus { outline: none; background: #e8f4fd; }
-.badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
-.badge-pending { background: #fff3cd; color: #856404; }
-.badge-active { background: #d1f5e0; color: #0f6e56; }
-.badge-done { background: #e0e0e0; color: #555; }
-.totals-row { background: #e8197d !important; }
-.totals-row td { padding: 6px; }
-.totals-val { color: white; font-size: 11px; font-weight: 600; }
-.footer { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-@media (max-width: 768px) { .footer { grid-template-columns: 1fr; } .pricing-bar { grid-template-columns: repeat(3,1fr); } }
-.footer-card { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px 12px; }
-.footer-title { font-size: 10px; color: #888; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-.footer-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid #f0f0f0; }
-.footer-row:last-child { border-bottom: none; }
-.footer-key { font-size: 11px; color: #666; }
-.footer-val { font-size: 12px; font-weight: 600; color: #1a1a1a; }
-.sig-line { border-bottom: 1px solid #ccc; margin-top: 22px; margin-bottom: 4px; }
-.sig-label { font-size: 10px; color: #aaa; }
-.loading-msg { text-align: center; padding: 30px; color: #888; font-size: 13px; }
-.error-msg { text-align: center; padding: 30px; color: #c0392b; font-size: 12px; line-height: 1.6; }
-.empty-msg { text-align: center; padding: 30px; color: #aaa; font-size: 12px; }
-@media print {
-  .btn { display: none; }
-  .header-right { display: none; }
-  body { background: white; }
-  .table-wrap { overflow: visible; }
-  table { min-width: auto; }
-}
+.pricing-bar { display: flex; gap: 8px; padding: 8px 16px; overflow-x: auto; background: #fafafa; border-bottom: 1px solid #e0e0e0; }
+.price-chip { background: white; border: 1px solid #e0e0e0; border-radius: 10px; padding: 5px 10px; text-align: center; white-space: nowrap; min-width: 100px; }
+.price-chip.disp { border-color: #e8197d; }
+.pz { font-size: 10px; color: #888; }
+.pa { font-size: 13px; font-weight: 700; color: #e8197d; }
+.pr { font-size: 10px; color: #aaa; }
+.tab-bar { display: flex; background: white; border-bottom: 1px solid #e0e0e0; }
+.tab { flex: 1; padding: 12px 8px; text-align: center; font-size: 12px; font-weight: 600; color: #888; cursor: pointer; border-bottom: 3px solid transparent; }
+.tab.active { color: #e8197d; border-bottom-color: #e8197d; }
+.add-order-bar { padding: 10px 16px; background: white; border-bottom: 1px solid #e0e0e0; }
+.add-order-btn { background: #e8197d; color: white; border: none; border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 700; cursor: pointer; width: 100%; }
+.orders-container { padding: 12px 16px; }
+.section-title { font-size: 12px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin: 12px 0 8px; }
+.order-card { background: white; border-radius: 12px; padding: 14px; margin-bottom: 10px; border: 1px solid #e0e0e0; }
+.order-card.pending { border-left: 4px solid #f59e0b; }
+.order-card.active { border-left: 4px solid #1D9E75; }
+.order-card.completed { border-left: 4px solid #9ca3af; opacity: 0.75; }
+.order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.order-name { font-size: 15px; font-weight: 700; }
+.order-time { font-size: 11px; color: #888; }
+.order-detail { font-size: 12px; color: #555; margin-bottom: 3px; }
+.order-detail span { color: #888; margin-right: 4px; }
+.order-fee { font-size: 16px; font-weight: 700; color: #e8197d; margin: 8px 0; }
+.age-warning { color: #e8197d; font-size: 11px; font-weight: 700; margin-bottom: 6px; }
+.order-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.action-btn { flex: 1; min-width: 80px; padding: 10px 12px; border-radius: 8px; border: none; font-size: 12px; font-weight: 700; cursor: pointer; }
+.btn-accept { background: #1D9E75; color: white; }
+.btn-complete { background: #3b82f6; color: white; }
+.driver-assign-sel { flex: 1; border: 1px solid #e0e0e0; border-radius: 8px; padding: 8px; font-size: 12px; font-family: inherit; background: white; }
+.sms-badge { display: inline-block; background: #d1f5e0; color: #0f6e56; font-size: 11px; padding: 3px 10px; border-radius: 20px; margin-top: 6px; }
+.comp-box { background: #f9f9f9; border-radius: 8px; padding: 12px; margin-top: 10px; }
+.comp-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.comp-label { font-size: 10px; color: #888; font-weight: 600; margin-bottom: 3px; }
+.comp-input { border: 1px solid #e0e0e0; border-radius: 8px; padding: 8px; font-size: 13px; font-family: inherit; width: 100%; }
+.pay-sel { width: 100%; border: 1px solid #e0e0e0; border-radius: 8px; padding: 8px; font-size: 13px; font-family: inherit; background: white; }
+.driver-pay-info { font-size: 11px; color: #888; margin-top: 6px; }
+.fin-section { padding: 12px 16px; }
+.fin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.fin-card { background: white; border-radius: 12px; padding: 16px; border: 1px solid #e0e0e0; text-align: center; }
+.fin-num { font-size: 26px; font-weight: 700; color: #e8197d; }
+.fin-label { font-size: 11px; color: #888; margin-top: 3px; }
+.recon-card { background: white; border-radius: 12px; padding: 14px; border: 1px solid #e0e0e0; margin-bottom: 10px; }
+.recon-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+.recon-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #f0f0f0; }
+.recon-row:last-child { border-bottom: none; }
+.recon-key { font-size: 12px; color: #555; }
+.recon-val { font-size: 13px; font-weight: 600; }
+.recon-input { border: 1px solid #e0e0e0; border-radius: 6px; padding: 5px 8px; font-size: 13px; width: 95px; text-align: right; font-family: inherit; }
+.signoff-section { padding: 12px 16px; }
+.sig-card { background: white; border-radius: 12px; padding: 14px; border: 1px solid #e0e0e0; margin-bottom: 12px; }
+.sig-title { font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+.sig-canvas { border: 2px dashed #e0e0e0; border-radius: 8px; width: 100%; height: 130px; cursor: crosshair; touch-action: none; display: block; background: #fafafa; }
+.sig-btns { display: flex; gap: 8px; margin-top: 8px; }
+.sig-clear { background: #f0f0f0; border: none; border-radius: 8px; padding: 8px 16px; font-size: 12px; cursor: pointer; }
+.sig-confirm { background: #e8197d; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 12px; cursor: pointer; font-weight: 700; }
+.sig-saved { color: #1D9E75; font-size: 12px; margin-top: 6px; display: none; }
+.print-btn { background: #1a1a1a; color: white; border: none; border-radius: 10px; padding: 14px; font-size: 14px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 4px; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: flex-end; }
+.modal-overlay.open { display: flex; }
+.modal { background: white; border-radius: 16px 16px 0 0; padding: 20px 16px 32px; width: 100%; max-height: 90vh; overflow-y: auto; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.modal-title { font-size: 16px; font-weight: 700; }
+.modal-close { background: #f0f0f0; border: none; border-radius: 8px; padding: 7px 14px; cursor: pointer; font-size: 13px; }
+.form-group { margin-bottom: 12px; }
+.form-label { font-size: 12px; color: #666; font-weight: 600; display: block; margin-bottom: 4px; }
+.form-input { width: 100%; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px 12px; font-size: 14px; font-family: inherit; }
+.form-input:focus { outline: none; border-color: #e8197d; }
+.form-select { width: 100%; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px 12px; font-size: 14px; font-family: inherit; background: white; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.submit-btn { background: #e8197d; color: white; border: none; border-radius: 10px; padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 8px; }
+.empty-state { text-align: center; padding: 40px 20px; color: #aaa; font-size: 14px; line-height: 1.8; }
+@media print { .topbar,.stats-bar,.pricing-bar,.tab-bar,.add-order-bar,.action-btn,.driver-assign-sel,.tb-btn,.modal-overlay { display: none !important; } }
 </style>
 </head>
 <body>
-<div class="sheet">
 
-  <div class="header">
-    <div class="brand">
-      <div class="brand-icon">🚚</div>
-      <div class="brand-text">
-        <h1>DeliverEase4U — Live Dispatch</h1>
-        <p>Orders sync automatically from deliverease4u.com</p>
-      </div>
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">🚚</div>
+    <div class="login-title">DeliverEase4U</div>
+    <div class="login-sub">Select your name and enter your PIN</div>
+    <div class="pin-user-select">
+      <button class="user-btn active" onclick="selectUser('michael')" id="btn-michael">Michael</button>
+      <button class="user-btn" onclick="selectUser('adam')" id="btn-adam">Adam</button>
     </div>
-    <div class="header-right">
-      <input class="meta-input" type="date" id="shift-date">
-      <select class="driver-sel" id="driver-filter" onchange="renderOrders(allOrders)">
-        <option value="">All drivers</option>
-        <option>Driver 1</option>
-        <option>Driver 2</option>
-        <option>Driver 3</option>
-        <option>Driver 4</option>
-        <option>Driver 5</option>
-        <option>Driver 6</option>
-      </select>
-      <button class="btn btn-white" onclick="loadOrders()">🔄 Refresh</button>
-      <button class="btn btn-dark" onclick="window.print()">🖨️ Print</button>
+    <div class="pin-display">
+      <div class="pin-dot" id="d0"></div>
+      <div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div>
+      <div class="pin-dot" id="d3"></div>
+    </div>
+    <div class="pin-error" id="pinError"></div>
+    <div class="pin-pad">
+      <button class="pin-btn" onclick="pp('1')">1</button>
+      <button class="pin-btn" onclick="pp('2')">2</button>
+      <button class="pin-btn" onclick="pp('3')">3</button>
+      <button class="pin-btn" onclick="pp('4')">4</button>
+      <button class="pin-btn" onclick="pp('5')">5</button>
+      <button class="pin-btn" onclick="pp('6')">6</button>
+      <button class="pin-btn" onclick="pp('7')">7</button>
+      <button class="pin-btn" onclick="pp('8')">8</button>
+      <button class="pin-btn" onclick="pp('9')">9</button>
+      <button class="pin-btn" style="visibility:hidden;"></button>
+      <button class="pin-btn" onclick="pp('0')">0</button>
+      <button class="pin-btn del" onclick="pd()">⌫</button>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="mainApp">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">DeliverEase4U Dispatch</div>
+      <div class="topbar-sub" id="topSub">—</div>
+    </div>
+    <div class="topbar-right">
+      <input type="date" id="shiftDate" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:white;padding:4px 6px;font-size:11px;" onchange="loadOrders()">
+      <button class="tb-btn" onclick="loadOrders()">↺</button>
+      <button class="tb-btn" onclick="logout()">Exit</button>
     </div>
   </div>
 
-  <div class="status-bar">
-    <div class="stat-pill live"><div class="dot"></div> Live — Supabase</div>
-    <div class="stat-pill">Orders: <strong id="pill-orders">—</strong></div>
-    <div class="stat-pill">Pending: <strong id="pill-pending">—</strong></div>
-    <div class="stat-pill">Completed: <strong id="pill-done">—</strong></div>
-    <div class="stat-pill">Fees: <strong id="pill-fees">—</strong></div>
-    <div class="stat-pill">Last sync: <strong id="pill-sync">—</strong></div>
+  <div class="stats-bar">
+    <div class="stat-pill live"><div class="dot"></div>Live</div>
+    <div class="stat-pill">Orders:<strong id="sO">0</strong></div>
+    <div class="stat-pill">Pending:<strong id="sP">0</strong></div>
+    <div class="stat-pill">Active:<strong id="sA">0</strong></div>
+    <div class="stat-pill">Done:<strong id="sD">0</strong></div>
+    <div class="stat-pill">Sync:<strong id="sS">—</strong></div>
   </div>
 
   <div class="pricing-bar">
-    <div class="price-card">
-      <div class="price-zone">Zone 1 — Local</div>
-      <div class="price-amount">$10.00</div>
-      <div class="price-range">0–5 miles</div>
-    </div>
-    <div class="price-card">
-      <div class="price-zone">Zone 2 — Mid-Range</div>
-      <div class="price-amount">$14.00</div>
-      <div class="price-range">5–10 miles</div>
-    </div>
-    <div class="price-card">
-      <div class="price-zone">Zone 3 — Extended</div>
-      <div class="price-amount">$22.00</div>
-      <div class="price-range">10–15 miles • $40 min</div>
-    </div>
-    <div class="price-card">
-      <div class="price-zone">Zone 4 — Custom</div>
-      <div class="price-amount">Quote</div>
-      <div class="price-range">15+ miles</div>
-    </div>
-    <div class="price-card disp">
-      <div class="price-zone">Dispensary — Flat</div>
-      <div class="price-amount">$20.00</div>
-      <div class="price-range">21+ ID required</div>
+    <div class="price-chip"><div class="pz">Zone 1</div><div class="pa">$10</div><div class="pr">0–5 mi</div></div>
+    <div class="price-chip"><div class="pz">Zone 2</div><div class="pa">$14</div><div class="pr">5–10 mi</div></div>
+    <div class="price-chip"><div class="pz">Zone 3</div><div class="pa">$22</div><div class="pr">10–15 mi·$40min</div></div>
+    <div class="price-chip"><div class="pz">Zone 4</div><div class="pa">Quote</div><div class="pr">15+mi</div></div>
+    <div class="price-chip disp"><div class="pz">Dispensary</div><div class="pa">$20</div><div class="pr">21+ID req.</div></div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab active" id="tab-orders" onclick="showTab('orders')">📋 Orders</div>
+    <div class="tab" id="tab-fin" onclick="showTab('fin')" style="display:none;">💰 Financials</div>
+    <div class="tab" id="tab-sig" onclick="showTab('sig')">✍️ Sign-Off</div>
+  </div>
+
+  <div id="addOrderBar" style="display:none;" class="add-order-bar">
+    <button class="add-order-btn" onclick="openModal()">+ Add Manual Order (Phone / Cash Customer)</button>
+  </div>
+
+  <div id="ordersTab">
+    <div class="orders-container" id="ordersContainer">
+      <div class="empty-state">⏳ Loading orders...</div>
     </div>
   </div>
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th style="width:28px;">#</th>
-          <th style="width:70px;">Time</th>
-          <th style="width:90px;">Customer</th>
-          <th style="width:85px;">Phone</th>
-          <th style="width:130px;">Address</th>
-          <th style="width:100px;">Restaurant</th>
-          <th style="width:110px;">Items</th>
-          <th style="width:55px;">Del. fee</th>
-          <th style="width:60px;">Food cost</th>
-          <th style="width:50px;">Tip</th>
-          <th style="width:65px;">Total collect</th>
-          <th style="width:65px;">Payment</th>
-          <th style="width:80px;">Driver</th>
-          <th style="width:75px;">Status</th>
-          <th style="width:55px;">Driver pay</th>
-          <th style="width:70px;">Notes</th>
-        </tr>
-      </thead>
-      <tbody id="order-body">
-        <tr><td colspan="16"><div class="loading-msg">⏳ Loading orders from Supabase...</div></td></tr>
-      </tbody>
-      <tr class="totals-row">
-        <td colspan="7" style="padding:6px;"><span class="totals-val">TOTALS</span></td>
-        <td style="padding:6px;"><span class="totals-val" id="tot-fee">$0.00</span></td>
-        <td style="padding:6px;"><span class="totals-val" id="tot-food">$0.00</span></td>
-        <td style="padding:6px;"><span class="totals-val" id="tot-tip">$0.00</span></td>
-        <td style="padding:6px;"><span class="totals-val" id="tot-total">$0.00</span></td>
-        <td colspan="2"></td>
-        <td></td>
-        <td style="padding:6px;"><span class="totals-val" id="tot-driver">$0.00</span></td>
-        <td></td>
-      </tr>
-    </table>
+  <div id="finTab" style="display:none;">
+    <div class="fin-section">
+      <div class="fin-grid">
+        <div class="fin-card"><div class="fin-num" id="fFees">$0</div><div class="fin-label">Total Fees</div></div>
+        <div class="fin-card"><div class="fin-num" id="fDriver">$0</div><div class="fin-label">Driver Pay</div></div>
+        <div class="fin-card"><div class="fin-num" id="fTips">$0</div><div class="fin-label">Tips</div></div>
+        <div class="fin-card"><div class="fin-num" id="fCompany" style="color:#1D9E75;">$0</div><div class="fin-label">Company Keeps</div></div>
+      </div>
+      <div class="recon-card">
+        <div class="recon-title">💵 Cash Reconciliation</div>
+        <div class="recon-row"><span class="recon-key">Cash collected</span><input class="recon-input" id="rCI" type="number" placeholder="0.00" oninput="calcR()"></div>
+        <div class="recon-row"><span class="recon-key">Starting float</span><input class="recon-input" id="rCF" type="number" placeholder="0.00" oninput="calcR()"></div>
+        <div class="recon-row"><span class="recon-key">Purchases (debit)</span><input class="recon-input" id="rCS" type="number" placeholder="0.00" oninput="calcR()"></div>
+        <div class="recon-row"><span class="recon-key">Expected on hand</span><span class="recon-val" id="rExp">$0.00</span></div>
+        <div class="recon-row"><span class="recon-key">Actual on hand</span><input class="recon-input" id="rCA" type="number" placeholder="0.00" oninput="calcR()"></div>
+        <div class="recon-row"><span class="recon-key" style="font-weight:700;">Over / Short</span><span class="recon-val" id="rVar">$0.00</span></div>
+      </div>
+    </div>
   </div>
 
-  <div class="footer">
-    <div class="footer-card">
-      <div class="footer-title">Shift Summary</div>
-      <div class="footer-row"><span class="footer-key">Total deliveries</span><span class="footer-val" id="sum-del">0</span></div>
-      <div class="footer-row"><span class="footer-key">Total fees collected</span><span class="footer-val" id="sum-fees">$0.00</span></div>
-      <div class="footer-row"><span class="footer-key">Total tips</span><span class="footer-val" id="sum-tips">$0.00</span></div>
-      <div class="footer-row"><span class="footer-key">Total driver pay</span><span class="footer-val" id="sum-dpay">$0.00</span></div>
-      <div class="footer-row"><span class="footer-key" style="font-weight:600;">Company keeps</span><span class="footer-val" id="sum-co" style="color:#e8197d;">$0.00</span></div>
+  <div id="sigTab" style="display:none;">
+    <div class="signoff-section">
+      <div class="sig-card">
+        <div class="sig-title" id="driverSigTitle">Driver Signature</div>
+        <canvas class="sig-canvas" id="dSig"></canvas>
+        <div class="sig-btns">
+          <button class="sig-clear" onclick="clearSig('d')">Clear</button>
+          <button class="sig-confirm" onclick="saveSig('d')">Confirm</button>
+        </div>
+        <div class="sig-saved" id="dSigSaved">✅ Driver signature saved</div>
+      </div>
+      <div class="sig-card" id="dispSigCard">
+        <div class="sig-title">Dispatcher Signature — Michael Hiratani</div>
+        <canvas class="sig-canvas" id="mSig"></canvas>
+        <div class="sig-btns">
+          <button class="sig-clear" onclick="clearSig('m')">Clear</button>
+          <button class="sig-confirm" onclick="saveSig('m')">Confirm</button>
+        </div>
+        <div class="sig-saved" id="mSigSaved">✅ Dispatcher signature saved</div>
+      </div>
+      <button class="print-btn" onclick="window.print()">🖨️ Print Shift Report</button>
     </div>
-    <div class="footer-card">
-      <div class="footer-title">Cash Reconciliation</div>
-      <div class="footer-row"><span class="footer-key">Cash collected this shift</span><input class="cell-input" id="cash-in" type="number" placeholder="0.00" style="width:80px;text-align:right;" oninput="calcRecon()"></div>
-      <div class="footer-row"><span class="footer-key">Starting cash float</span><input class="cell-input" id="cash-float" type="number" placeholder="0.00" style="width:80px;text-align:right;" oninput="calcRecon()"></div>
-      <div class="footer-row"><span class="footer-key">Purchases (debit card)</span><input class="cell-input" id="cash-spend" type="number" placeholder="0.00" style="width:80px;text-align:right;" oninput="calcRecon()"></div>
-      <div class="footer-row"><span class="footer-key">Expected on hand</span><span class="footer-val" id="cash-exp">$0.00</span></div>
-      <div class="footer-row"><span class="footer-key">Actual on hand</span><input class="cell-input" id="cash-act" type="number" placeholder="0.00" style="width:80px;text-align:right;" oninput="calcRecon()"></div>
-      <div class="footer-row"><span class="footer-key" style="font-weight:600;">Over / Short</span><span class="footer-val" id="cash-var">$0.00</span></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Manual Order</div>
+      <button class="modal-close" onclick="closeModal()">✕ Close</button>
     </div>
-    <div class="footer-card">
-      <div class="footer-title">Driver Sign-Off</div>
-      <div class="footer-row"><span class="footer-key">Driver name</span><span class="footer-val" id="sig-name">—</span></div>
-      <div class="footer-row"><span class="footer-key">Deliveries completed</span><span class="footer-val" id="sig-del">0</span></div>
-      <div class="footer-row"><span class="footer-key">Pay amount</span><span class="footer-val" id="sig-pay">$0.00</span></div>
-      <div class="footer-row"><span class="footer-key">Paid via</span>
-        <select class="cell-sel" style="width:90px;">
-          <option>Cash</option><option>Zelle</option><option>Other</option>
+    <div class="form-group"><label class="form-label">Customer Name *</label><input class="form-input" id="mName" placeholder="First Last"></div>
+    <div class="form-group"><label class="form-label">Phone Number *</label><input class="form-input" id="mPhone" placeholder="775-000-0000" type="tel"></div>
+    <div class="form-group"><label class="form-label">Delivery Address *</label><input class="form-input" id="mAddr" placeholder="123 Main St, Pahrump NV"></div>
+    <div class="form-group"><label class="form-label">Restaurant / Store *</label><input class="form-input" id="mStore" placeholder="McDonald's, Walmart..."></div>
+    <div class="form-group"><label class="form-label">Items Ordered *</label><input class="form-input" id="mItems" placeholder="Big Mac meal, large Coke..."></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Zone / Fee</label>
+        <select class="form-select" id="mZone" onchange="document.getElementById('mFee').value=this.value">
+          <option value="10">Zone 1 — $10</option>
+          <option value="14">Zone 2 — $14</option>
+          <option value="22">Zone 3 — $22</option>
+          <option value="20">Dispensary — $20</option>
         </select>
       </div>
-      <div class="sig-line"></div>
-      <div class="sig-label">Driver signature</div>
-      <div class="sig-line" style="margin-top:22px;"></div>
-      <div class="sig-label">Dispatcher / Manager signature</div>
+      <div class="form-group"><label class="form-label">Delivery Fee</label><input class="form-input" id="mFee" type="number" value="10"></div>
     </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Payment</label>
+        <select class="form-select" id="mPay"><option>Cash</option><option>Zelle</option><option>Card</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Assign Driver</label>
+        <select class="form-select" id="mDriver"><option value="">Unassigned</option><option value="Adam Mercer">Adam Mercer</option></select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Notes / Special Instructions</label><input class="form-input" id="mNotes" placeholder="Gate code, no pickles..."></div>
+    <div class="form-group"><label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="mAge"> 21+ Dispensary order — ID required at delivery</label></div>
+    <button class="submit-btn" onclick="submitOrder()">✅ Submit Order</button>
   </div>
-
 </div>
 
 <script>
-const SUPABASE_URL = 'https://mrhvgffvpmakfyccnsxh.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yaHZnZmZ2cG1ha2Z5Y2Nuc3hoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTk1MjUsImV4cCI6MjA5MDA3NTUyNX0.mXkRuUf1CR1vTbbBThU2dBGZqY5kfBl-aVpksMxzZak';
+const SB = 'https://mrhvgffvpmakfyccnsxh.supabase.co';
+const SK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yaHZnZmZ2cG1ha2Z5Y2Nuc3hoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTk1MjUsImV4cCI6MjA5MDA3NTUyNX0.mXkRuUf1CR1vTbbBThU2dBGZqY5kfBl-aVpksMxzZak';
+const TSID = 'AC86cab3cf3fffcc9c109048edccf90332';
+const TTOK = '3a5b564e23755efa0800c0a445bcb3c2';
+const TNUM = '+18665456498';
 
-const DRIVER_RATES = {'Zone 1':5,'Zone 2':6,'Zone 3':8,'Dispensary':7};
+const USERS = {
+  michael: { pin:'7291', role:'dispatcher', display:'Michael Hiratani' },
+  adam:    { pin:'4863', role:'driver',     display:'Adam Mercer', driverName:'Adam Mercer' }
+};
 
-let allOrders = [];
+const DR = { 'Zone 1':6, 'Zone 2':8, 'Zone 3':10, 'Dispensary':9 };
 
-function fmt(n){ return '$'+(parseFloat(n)||0).toFixed(2); }
-function v(id){ return parseFloat(document.getElementById(id).value)||0; }
+let cu = null, pin = '', su = 'michael', orders = [], cd = {};
 
-function getZone(fee){
-  const f = parseFloat(fee)||0;
-  if(f===20) return 'Dispensary';
-  if(f<=10) return 'Zone 1';
-  if(f<=14) return 'Zone 2';
-  if(f<=22) return 'Zone 3';
-  return 'Zone 1';
+function selectUser(u) {
+  su = u; pin = ''; updateDots();
+  document.getElementById('pinError').textContent = '';
+  document.querySelectorAll('.user-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + u).classList.add('active');
 }
 
-function timeStr(ts){
-  if(!ts) return '—';
-  return new Date(ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+function pp(d) {
+  if (pin.length >= 4) return;
+  pin += d; updateDots();
+  if (pin.length === 4) setTimeout(checkPin, 200);
 }
 
-async function loadOrders(){
-  const body = document.getElementById('order-body');
-  body.innerHTML = '<tr><td colspan="16"><div class="loading-msg">⏳ Loading orders...</div></td></tr>';
-  const dateVal = document.getElementById('shift-date').value;
-  let url = `${SUPABASE_URL}/rest/v1/orders?select=*&order=created_at.desc`;
-  if(dateVal){
-    url += `&created_at=gte.${dateVal}T00:00:00&created_at=lte.${dateVal}T23:59:59`;
+function pd() { pin = pin.slice(0,-1); updateDots(); }
+
+function updateDots() {
+  for (let i=0;i<4;i++) document.getElementById('d'+i).classList.toggle('filled', i < pin.length);
+}
+
+function checkPin() {
+  const u = USERS[su];
+  if (pin === u.pin) {
+    cu = { ...u, id: su };
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainApp').classList.add('visible');
+    initApp();
+  } else {
+    document.getElementById('pinError').textContent = 'Incorrect PIN. Try again.';
+    pin = ''; updateDots();
   }
-  try{
-    const res = await fetch(url,{
-      headers:{
-        'apikey':SUPABASE_KEY,
-        'Authorization':'Bearer '+SUPABASE_KEY,
-        'Content-Type':'application/json'
-      }
+}
+
+function logout() {
+  cu = null; pin = ''; su = 'michael';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('mainApp').classList.remove('visible');
+  selectUser('michael'); updateDots();
+}
+
+function initApp() {
+  document.getElementById('topSub').textContent = cu.display + ' — ' + (cu.role === 'dispatcher' ? 'Dispatcher' : 'Driver');
+  document.getElementById('shiftDate').valueAsDate = new Date();
+  document.getElementById('driverSigTitle').textContent = cu.display + ' Signature';
+  if (cu.role === 'dispatcher') {
+    document.getElementById('addOrderBar').style.display = 'block';
+    document.getElementById('tab-fin').style.display = 'block';
+    document.getElementById('dispSigCard').style.display = 'block';
+  } else {
+    document.getElementById('addOrderBar').style.display = 'none';
+    document.getElementById('tab-fin').style.display = 'none';
+    document.getElementById('dispSigCard').style.display = 'none';
+  }
+  showTab('orders');
+  loadOrders();
+  initSigs();
+  setInterval(loadOrders, 60000);
+}
+
+function showTab(t) {
+  ['orders','fin','sig'].forEach(x => {
+    document.getElementById('tab-' + (x==='orders'?'orders':x==='fin'?'fin':'sig')).classList.toggle('active', x===t);
+    document.getElementById(x + 'Tab').style.display = x===t ? 'block' : 'none';
+  });
+}
+
+function fmt(n) { return '$'+(parseFloat(n)||0).toFixed(2); }
+function timeStr(ts) { if(!ts) return '—'; return new Date(ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
+function zone(fee) { const f=parseFloat(fee)||0; if(f===20) return 'Dispensary'; if(f<=10) return 'Zone 1'; if(f<=14) return 'Zone 2'; return 'Zone 3'; }
+
+async function loadOrders() {
+  const dv = document.getElementById('shiftDate').value;
+  let url = `${SB}/rest/v1/orders?select=*&order=created_at.desc`;
+  if (dv) url += `&created_at=gte.${dv}T00:00:00&created_at=lte.${dv}T23:59:59`;
+  try {
+    const r = await fetch(url, { headers:{'apikey':SK,'Authorization':'Bearer '+SK} });
+    orders = await r.json();
+    if (cu.role === 'driver') orders = orders.filter(o => o.driver_assigned === cu.driverName);
+    renderOrders(); updateStats();
+    document.getElementById('sS').textContent = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  } catch(e) {
+    document.getElementById('ordersContainer').innerHTML = '<div class="empty-state">❌ Cannot connect to database.<br>Check your internet connection.</div>';
+  }
+}
+
+function updateStats() {
+  document.getElementById('sO').textContent = orders.length;
+  document.getElementById('sP').textContent = orders.filter(o=>!o.order_status||o.order_status==='pending').length;
+  document.getElementById('sA').textContent = orders.filter(o=>o.order_status==='active').length;
+  document.getElementById('sD').textContent = orders.filter(o=>o.order_status==='completed').length;
+  if (cu.role==='dispatcher') updateFin();
+}
+
+function updateFin() {
+  let fees=0,tips=0,dp=0;
+  orders.forEach(o => {
+    fees += parseFloat(o.delivery_fee)||0;
+    tips += parseFloat((cd[o.id]||{}).tip)||0;
+    dp += DR[zone(o.delivery_fee)]||6;
+  });
+  document.getElementById('fFees').textContent=fmt(fees);
+  document.getElementById('fDriver').textContent=fmt(dp);
+  document.getElementById('fTips').textContent=fmt(tips);
+  document.getElementById('fCompany').textContent=fmt(fees-dp);
+}
+
+function calcR() {
+  const ci=parseFloat(document.getElementById('rCI').value)||0;
+  const cf=parseFloat(document.getElementById('rCF').value)||0;
+  const cs=parseFloat(document.getElementById('rCS').value)||0;
+  const ca=parseFloat(document.getElementById('rCA').value)||0;
+  const exp=cf+ci-cs, v=ca-exp;
+  document.getElementById('rExp').textContent=fmt(exp);
+  const el=document.getElementById('rVar');
+  el.textContent=(v>=0?'+':'')+fmt(v);
+  el.style.color=v<0?'#dc2626':v>0?'#1D9E75':'#e8197d';
+}
+
+function renderOrders() {
+  const c = document.getElementById('ordersContainer');
+  if (!orders.length) { c.innerHTML='<div class="empty-state">📭 No orders for this date.<br><small>Website orders appear here automatically.</small></div>'; return; }
+  const groups = { pending:[], active:[], completed:[] };
+  orders.forEach(o => { const s=o.order_status||'pending'; groups[s in groups?s:'pending'].push(o); });
+  let html='';
+  const labels = {pending:'⏳ Pending',active:'🚗 Active',completed:'✅ Completed'};
+  ['pending','active','completed'].forEach(s => {
+    if (!groups[s].length) return;
+    html += `<div class="section-title">${labels[s]} (${groups[s].length})</div>`;
+    groups[s].forEach(o => html+=card(o));
+  });
+  c.innerHTML=html;
+}
+
+function card(o) {
+  const z=zone(o.delivery_fee), dp=DR[z]||6, s=o.order_status||'pending';
+  const d=cd[o.id]||{};
+  let actions='';
+  if (cu.role==='dispatcher') {
+    if (s==='pending') actions+=`<select class="driver-assign-sel" onchange="assignDriver('${o.id}',this.value)"><option value="">Assign driver...</option><option value="Adam Mercer"${o.driver_assigned==='Adam Mercer'?' selected':''}>Adam Mercer</option></select><button class="action-btn btn-accept" onclick="activate('${o.id}')">▶ Activate</button>`;
+    if (s==='active') actions+=`<button class="action-btn btn-complete" onclick="complete('${o.id}')">✓ Done</button>`;
+  }
+  if (cu.role==='driver') {
+    if (s==='pending') actions+=`<button class="action-btn btn-accept" onclick="driverAccept('${o.id}','${(o.customer_phone||'').replace(/'/g,"\\'")}','${(o.customer_name||'').replace(/'/g,"\\'")}')">✅ Accept & Text Customer</button>`;
+    if (s==='active') actions+=`<button class="action-btn btn-complete" onclick="complete('${o.id}')">✓ Delivery Complete</button>`;
+  }
+  const compBox = (s==='active'||s==='completed') ? `<div class="comp-box"><div class="comp-grid"><div><div class="comp-label">Food Cost</div><input class="comp-input" type="number" placeholder="0.00" value="${d.food||''}" oninput="sc('${o.id}','food',this.value)"></div><div><div class="comp-label">Tip</div><input class="comp-input" type="number" placeholder="0.00" value="${d.tip||''}" oninput="sc('${o.id}','tip',this.value)"></div><div><div class="comp-label">Total Collected</div><input class="comp-input" type="number" placeholder="0.00" value="${d.total||''}" oninput="sc('${o.id}','total',this.value)"></div></div><select class="pay-sel"><option>Cash</option><option>Zelle</option><option>Card</option></select>${cu.role==='dispatcher'?`<div class="driver-pay-info">Driver pay: <strong style="color:#e8197d;">${fmt(dp)}</strong></div>`:''}</div>` : '';
+  const smsBadge = d.sms ? '<div class="sms-badge">📱 Customer notified via text</div>' : '';
+  return `<div class="order-card ${s}" id="oc-${o.id}"><div class="order-header"><div class="order-name">${o.customer_name||'—'}</div><div class="order-time">${timeStr(o.created_at)}</div></div><div class="order-detail"><span>📞</span>${o.customer_phone||'—'}</div><div class="order-detail"><span>📍</span>${o.delivery_address||'—'}</div><div class="order-detail"><span>🍔</span>${o.store_name||'—'}</div><div class="order-detail"><span>📝</span>${o.items_ordered||'—'}</div>${o.special_instructions?`<div class="order-detail"><span>⚠️</span>${o.special_instructions}</div>`:''} ${o.is_age_restricted?'<div class="age-warning">🔞 21+ ID REQUIRED AT DELIVERY</div>':''} ${o.driver_assigned?`<div class="order-detail"><span>🚗</span>${o.driver_assigned}</div>`:''}<div class="order-fee">${fmt(o.delivery_fee)} — ${z}</div>${smsBadge}<div class="order-actions">${actions}</div>${compBox}</div>`;
+}
+
+function sc(id,f,v) { if(!cd[id]) cd[id]={}; cd[id][f]=v; updateFin&&cu.role==='dispatcher'&&updateFin(); }
+
+async function assignDriver(id,name) { await patch(id,{driver_assigned:name}); loadOrders(); }
+async function activate(id) { await patch(id,{order_status:'active'}); loadOrders(); }
+async function complete(id) { await patch(id,{order_status:'completed'}); loadOrders(); }
+
+async function driverAccept(id,phone,name) {
+  await patch(id,{order_status:'active',driver_assigned:cu.driverName});
+  if(!cd[id]) cd[id]={};
+  cd[id].sms=true;
+  await sendSMS(phone,name);
+  loadOrders();
+}
+
+async function patch(id,data) {
+  await fetch(`${SB}/rest/v1/orders?id=eq.${id}`,{method:'PATCH',headers:{'apikey':SK,'Authorization':'Bearer '+SK,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(data)});
+}
+
+async function sendSMS(phone,name) {
+  const msg = `Hi ${name}! ${cu.driverName} from DeliverEase4U is on the way with your order! Questions? Call or text 775-671-6089. Thank you for choosing us!`;
+  try {
+    await fetch(`https://api.twilio.com/2010-04-01/Accounts/${TSID}/Messages.json`,{
+      method:'POST',
+      headers:{'Authorization':'Basic '+btoa(TSID+':'+TTOK),'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams({To:phone,From:TNUM,Body:msg}).toString()
     });
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    allOrders = await res.json();
-    renderOrders(allOrders);
-    document.getElementById('pill-sync').textContent = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  } catch(e){
-    body.innerHTML = `<tr><td colspan="16"><div class="error-msg">❌ Could not connect to Supabase.<br>Error: ${e.message}<br><br>Make sure you are connected to the internet and try refreshing.</div></td></tr>`;
-  }
+  } catch(e){ console.log('SMS error',e); }
 }
 
-function renderOrders(orders){
-  const body = document.getElementById('order-body');
-  const df = document.getElementById('driver-filter').value;
-  const filtered = df ? orders.filter(o=>o.driver_assigned===df) : orders;
+function openModal() { document.getElementById('modal').classList.add('open'); }
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
 
-  if(!filtered.length){
-    body.innerHTML = '<tr><td colspan="16"><div class="empty-msg">📭 No orders found for this date.<br>Orders will appear here automatically when customers submit on deliverease4u.com</div></td></tr>';
-    updateStats([]);
-    return;
-  }
-
-  body.innerHTML='';
-  filtered.forEach((order,i)=>{
-    const zone = getZone(order.delivery_fee);
-    const driverPay = DRIVER_RATES[zone]||5;
-    const status = order.order_status||'pending';
-    const tr = document.createElement('tr');
-    tr.innerHTML=`
-      <td><div class="td-muted" style="text-align:center;">${i+1}</div></td>
-      <td><div class="td-muted">${timeStr(order.created_at)}</div></td>
-      <td><div class="td-text" title="${order.customer_name||''}">${order.customer_name||'—'}</div></td>
-      <td><div class="td-text">${order.customer_phone||'—'}</div></td>
-      <td><div class="td-text" title="${order.delivery_address||''}">${(order.delivery_address||'—').substring(0,25)}${(order.delivery_address||'').length>25?'...':''}</div></td>
-      <td><div class="td-text">${order.store_name||'—'}</div></td>
-      <td><div class="td-text" title="${order.items_ordered||''}">${(order.items_ordered||'—').substring(0,30)}${(order.items_ordered||'').length>30?'...':''}</div></td>
-      <td><div class="td-text" style="color:#e8197d;font-weight:600;">${fmt(order.delivery_fee)}</div></td>
-      <td><input class="cell-input" type="number" placeholder="0.00" step="0.01" oninput="recalcTotals()"></td>
-      <td><input class="cell-input" type="number" placeholder="0.00" step="0.01" oninput="recalcTotals()"></td>
-      <td><input class="cell-input" type="number" placeholder="0.00" step="0.01" oninput="recalcTotals()"></td>
-      <td>
-        <select class="cell-sel">
-          <option>Cash</option><option>Zelle</option><option>Card</option>
-        </select>
-      </td>
-      <td>
-        <select class="cell-sel" onchange="assignDriver(this,'${order.id}')">
-          <option value="">Assign</option>
-          <option>Driver 1</option><option>Driver 2</option><option>Driver 3</option>
-          <option>Driver 4</option><option>Driver 5</option><option>Driver 6</option>
-        </select>
-      </td>
-      <td>
-        <select class="cell-sel" onchange="updateStatus(this,'${order.id}')">
-          <option value="pending" ${status==='pending'?'selected':''}>Pending</option>
-          <option value="active" ${status==='active'?'selected':''}>Active</option>
-          <option value="completed" ${status==='completed'?'selected':''}>Done</option>
-        </select>
-      </td>
-      <td><div class="td-text" style="color:#e8197d;font-weight:600;" id="dp-${order.id}">${fmt(driverPay)}</div></td>
-      <td><input class="cell-input" placeholder="Notes"></td>
-    `;
-    if(order.driver_assigned){
-      const sel = tr.querySelector('select[onchange^="assignDriver"]');
-      [...sel.options].forEach(o=>{ if(o.text===order.driver_assigned) o.selected=true; });
-    }
-    body.appendChild(tr);
-  });
-  updateStats(filtered);
+async function submitOrder() {
+  const name=document.getElementById('mName').value.trim();
+  const phone=document.getElementById('mPhone').value.trim();
+  const addr=document.getElementById('mAddr').value.trim();
+  const store=document.getElementById('mStore').value.trim();
+  const items=document.getElementById('mItems').value.trim();
+  if(!name||!phone||!addr||!store||!items){alert('Please fill in all required fields.');return;}
+  const order={customer_name:name,customer_phone:phone,delivery_address:addr,store_name:store,items_ordered:items,delivery_fee:parseFloat(document.getElementById('mFee').value)||10,order_status:'pending',driver_assigned:document.getElementById('mDriver').value||null,special_instructions:document.getElementById('mNotes').value,is_age_restricted:document.getElementById('mAge').checked,source:'manual'};
+  try {
+    await fetch(`${SB}/rest/v1/orders`,{method:'POST',headers:{'apikey':SK,'Authorization':'Bearer '+SK,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(order)});
+    closeModal();
+    ['mName','mPhone','mAddr','mStore','mItems','mNotes'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('mAge').checked=false;
+    loadOrders();
+  } catch(e){alert('Error saving order.');}
 }
 
-function updateStats(orders){
-  const pending = orders.filter(o=>!o.order_status||o.order_status==='pending').length;
-  const done = orders.filter(o=>o.order_status==='completed').length;
-  const fees = orders.reduce((s,o)=>s+(parseFloat(o.delivery_fee)||0),0);
-  document.getElementById('pill-orders').textContent = orders.length;
-  document.getElementById('pill-pending').textContent = pending;
-  document.getElementById('pill-done').textContent = done;
-  document.getElementById('pill-fees').textContent = fmt(fees);
-  document.getElementById('sum-del').textContent = orders.length;
-  document.getElementById('sig-del').textContent = orders.length;
-  recalcTotals();
-}
-
-function recalcTotals(){
-  let fee=0,food=0,tip=0,total=0,driver=0;
-  document.getElementById('order-body').querySelectorAll('tr').forEach(row=>{
-    const nums = row.querySelectorAll('input[type=number]');
-    if(nums.length>=3){
-      food += parseFloat(nums[0].value)||0;
-      tip += parseFloat(nums[1].value)||0;
-      total += parseFloat(nums[2].value)||0;
-    }
-    const feeEl = row.querySelector('td:nth-child(8) div');
-    if(feeEl) fee += parseFloat(feeEl.textContent.replace('$',''))||0;
-    const dpEl = row.querySelector('[id^="dp-"]');
-    if(dpEl) driver += parseFloat(dpEl.textContent.replace('$',''))||0;
-  });
-  document.getElementById('tot-fee').textContent=fmt(fee);
-  document.getElementById('tot-food').textContent=fmt(food);
-  document.getElementById('tot-tip').textContent=fmt(tip);
-  document.getElementById('tot-total').textContent=fmt(total);
-  document.getElementById('tot-driver').textContent=fmt(driver);
-  document.getElementById('sum-fees').textContent=fmt(fee);
-  document.getElementById('sum-tips').textContent=fmt(tip);
-  document.getElementById('sum-dpay').textContent=fmt(driver);
-  document.getElementById('sum-co').textContent=fmt(fee-driver);
-  document.getElementById('sig-pay').textContent=fmt(driver);
-  calcRecon();
-}
-
-async function updateStatus(sel,id){
-  await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${id}`,{
-    method:'PATCH',
-    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
-    body:JSON.stringify({order_status:sel.value})
+function initSigs() {
+  ['dSig','mSig'].forEach(id => {
+    const cv=document.getElementById(id);
+    if(!cv) return;
+    const ctx=cv.getContext('2d');
+    cv.width=cv.offsetWidth; cv.height=cv.offsetHeight;
+    ctx.strokeStyle='#1a1a1a'; ctx.lineWidth=2; ctx.lineCap='round';
+    let draw=false;
+    function pos(e){const r=cv.getBoundingClientRect(),s=e.touches?e.touches[0]:e;return{x:s.clientX-r.left,y:s.clientY-r.top};}
+    cv.addEventListener('mousedown',e=>{draw=true;ctx.beginPath();const p=pos(e);ctx.moveTo(p.x,p.y);});
+    cv.addEventListener('mousemove',e=>{if(!draw)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();});
+    cv.addEventListener('mouseup',()=>draw=false);
+    cv.addEventListener('touchstart',e=>{e.preventDefault();draw=true;ctx.beginPath();const p=pos(e);ctx.moveTo(p.x,p.y);},{passive:false});
+    cv.addEventListener('touchmove',e=>{e.preventDefault();if(!draw)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();},{passive:false});
+    cv.addEventListener('touchend',()=>draw=false);
   });
 }
 
-async function assignDriver(sel,id){
-  document.getElementById('sig-name').textContent = sel.value||'—';
-  await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${id}`,{
-    method:'PATCH',
-    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
-    body:JSON.stringify({driver_assigned:sel.value})
-  });
+function clearSig(t) {
+  const cv=document.getElementById(t+'Sig');
+  cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
+  document.getElementById(t+'SigSaved').style.display='none';
 }
 
-function calcRecon(){
-  const collected=v('cash-in'), float=v('cash-float'), spend=v('cash-spend'), actual=v('cash-act');
-  const expected=float+collected-spend;
-  const variance=actual-expected;
-  document.getElementById('cash-exp').textContent=fmt(expected);
-  const varEl=document.getElementById('cash-var');
-  varEl.textContent=(variance>=0?'+':'')+fmt(variance);
-  varEl.style.color=variance<0?'#c0392b':variance>0?'#1D9E75':'#e8197d';
-}
-
-document.getElementById('shift-date').valueAsDate=new Date();
-document.getElementById('shift-date').addEventListener('change',loadOrders);
-loadOrders();
-setInterval(loadOrders,60000);
+function saveSig(t) { document.getElementById(t+'SigSaved').style.display='block'; }
 </script>
 </body>
 </html>
